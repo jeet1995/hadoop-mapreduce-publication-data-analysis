@@ -26,6 +26,7 @@ class MaxMedianAvgMapper extends Mapper[LongWritable, Text, Text, MaxMedianAvgWr
 
     if (authors.nonEmpty) {
       authors.foreach { author =>
+        logger.info("Mapper MaxMedianAvgMapper emitting (key, value) pair : " + "(" + author + "," + "(" + (authors.size - 1).toString + "," + (authors.size - 1).toString + "," + "1" + "," + (authors.size - 1).toString + ")")
         context.write(new Text(author), MaxMedianAvgWritable((authors.size - 1).asInstanceOf[Float], (authors.size - 1).asInstanceOf[Float], 1, (authors.size - 1).asInstanceOf[Long]))
       }
     }

@@ -23,4 +23,8 @@ object ApplicationConstants {
   val BUCKETING_BY_NUM_CO_AUTHOR = "bucketing-by-num-co-author"
   val BUCKETING_BY_PUBLICATION_TYPE = "bucketing-by-publication-type"
 
+  val SORT_FIRST_JOB = "sort-first-job"
+  val SORT_SECOND_JOB = "sort-second-job"
+  val INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX = "intermediate-sort-output-path-suffix"
+  val COMPLETE_SORT_OUTPUT_PATH_SUFFIX = "complete-sort-output-path-suffix"
 }

@@ -18,6 +18,7 @@ class AuthorshipScoreReducer extends Reducer[Text, FloatWritable, Text, FloatWri
   override def reduce(key: Text, values: lang.Iterable[FloatWritable], context: Reducer[Text, FloatWritable, Text, FloatWritable]#Context): Unit = {
 
     val value = values.asScala.foldLeft(new FloatWritable(0f)) { (a, b) => new FloatWritable(a.get() + b.get()) }
+    logger.info("Reducer AuthorshipScoreReducer emitting (key, value) pair : " + "(" + key.toString + "," + value.get + ")")
     context.write(key, value)
   }
 }

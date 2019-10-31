@@ -12,7 +12,7 @@ import scala.xml.{Elem, XML}
 /**
   * This class denotes the mapper class which performs a bucketing based on some node in the XML. The XML
   * is basically the format of the data in which publication information is represented.
-  * */
+  **/
 
 class BucketingByNumNodesMapper extends Mapper[LongWritable, Text, Text, IntWritable] with LazyLogging {
 
@@ -28,16 +28,22 @@ class BucketingByNumNodesMapper extends Mapper[LongWritable, Text, Text, IntWrit
     jobName match {
       case ApplicationConstants.BUCKETING_BY_NUM_CO_AUTHOR =>
         val authorCount = determineAuthorsPerPublication(publicationData)
-        context.write(new Text(KeyGenerator.generateKeyByBucket(authorCount, bucketSize)), new IntWritable(1))
+        val bucket = KeyGenerator.generateKeyByBucket(authorCount, bucketSize)
+
+        logger.info("Mapper BucketingByNumNodesMapper emitting (key, value) pair : " + "(" + bucket + "," + 1.toString + ")")
+
+        context.write(new Text(bucket), new IntWritable(1))
       case ApplicationConstants.BUCKETING_BY_PUBLICATION_TYPE =>
         val publicationType = determinePublicationType(publicationData)
+
+        logger.info("Mapper BucketingByNumNodesMapper emitting (key, value) pair : " + "(" + publicationType + "," + 1.toString + ")")
         context.write(new Text(publicationType), new IntWritable(1))
     }
   }
 
   /**
     * This is an overidden method which allows the mapper to be configurable based on job name and bucket size
-    * */
+    **/
   override def setup(context: Mapper[LongWritable, Text, Text, IntWritable]#Context): Unit = {
     jobName = context.getConfiguration.get(ApplicationConstants.JOB_NAME)
     bucketSize = context.getConfiguration.getInt(ApplicationConstants.BUCKET_SIZE, 3)
@@ -47,7 +53,7 @@ class BucketingByNumNodesMapper extends Mapper[LongWritable, Text, Text, IntWrit
   /**
     * @param publicationText This input represents a publication element in plain text.
     * @return This method returns publication text as an XML element.
-    * */
+    **/
   private def getPublicationXMLFromPublicationText(publicationText: String): Elem = {
     val xmlString =
       s"""<?xml version="1.0" encoding="ISO-8859-1"?><!DOCTYPE dblp SYSTEM "$dtdFilePath"><dblp>$publicationText</dblp>"""
@@ -61,7 +67,7 @@ class BucketingByNumNodesMapper extends Mapper[LongWritable, Text, Text, IntWrit
   /**
     * @param publicationData The publication element is taken as an input.
     * @return This method returns the no. of authors per publication.
-    * */
+    **/
   def determineAuthorsPerPublication(publicationData: Elem): Int = {
 
     var author = ""
@@ -82,7 +88,7 @@ class BucketingByNumNodesMapper extends Mapper[LongWritable, Text, Text, IntWrit
     * @param publicationData The publication element is taken as an input
     * @return This method returns the publication type which is basically the label representing the
     *         second node in the publication XML hierarchy.
-    * */
+    **/
   def determinePublicationType(publicationData: Elem): String = publicationData.child.head.label
 
 

@@ -1,7 +1,7 @@
 package main.scala.com.publication.statistics.computation.sortByNumCoAuthors
 
+import com.typesafe.scalalogging.LazyLogging
 import javax.xml.parsers.SAXParserFactory
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.Mapper
 
@@ -12,8 +12,8 @@ import scala.xml.{Elem, XML}
 /**
   * This class denotes a mapper which sorts authors based on the no. of unique co-authors the author has worked with
   * across publications.
-  * */
-class SortByNumCoAuthorsMapper extends Mapper[LongWritable, Text, Text, Text] {
+  **/
+class SortByNumCoAuthorsMapper extends Mapper[LongWritable, Text, Text, Text] with LazyLogging {
 
   private val xmlParser = SAXParserFactory.newInstance().newSAXParser()
   private val dtdFilePath = getClass.getClassLoader.getResource("dblp.dtd").toURI
@@ -28,8 +28,10 @@ class SortByNumCoAuthorsMapper extends Mapper[LongWritable, Text, Text, Text] {
       authors.foreach { author =>
         authors.foreach {
           authorRecursive =>
-            if (author != authorRecursive)
+            if (author != authorRecursive) {
+              logger.info("Mapper SortByNumCoAuthorsMapper emitting (key, value) pair : " + "(" + author + "," + authorRecursive + ")")
               context.write(new Text(author), new Text(authorRecursive))
+            }
         }
       }
     }
@@ -49,7 +51,7 @@ class SortByNumCoAuthorsMapper extends Mapper[LongWritable, Text, Text, Text] {
   /**
     * @param publicationElement The publication element.
     * @return This method returns the list of co-authors for the publication.
-    * */
+    **/
   def getCoAuthors(publicationElement: Elem): ArrayBuffer[String] = {
     val authors = new ArrayBuffer[String]()
 

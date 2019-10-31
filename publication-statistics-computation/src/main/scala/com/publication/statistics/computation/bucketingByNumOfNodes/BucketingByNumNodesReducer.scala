@@ -18,6 +18,7 @@ class BucketingByNumNodesReducer extends Reducer[Text, IntWritable, Text, IntWri
 
   override def reduce(key: Text, values: lang.Iterable[IntWritable], context: Reducer[Text, IntWritable, Text, IntWritable]#Context): Unit = {
     val value = values.asScala.foldLeft(new IntWritable(0)) { (a, b) => new IntWritable(a.get + b.get) }
+    logger.info("Reducer BucketingByNumNodesReducer emitting (key, value) pair : " + "(" + key + "," + value.get + ")")
     context.write(key, value)
 
   }

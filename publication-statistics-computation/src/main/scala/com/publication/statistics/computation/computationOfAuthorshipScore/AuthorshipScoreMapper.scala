@@ -1,5 +1,6 @@
 package main.scala.com.publication.statistics.computation.computationOfAuthorshipScore
 
+import com.typesafe.scalalogging.LazyLogging
 import javax.xml.parsers.SAXParserFactory
 import org.apache.hadoop.io.{FloatWritable, LongWritable, Text}
 import org.apache.hadoop.mapreduce.Mapper
@@ -10,8 +11,8 @@ import scala.xml.{Elem, XML}
 /**
   * This class denotes the mapper class which performs a calculation for the authorship score based on some node in the XML. The XML
   * is basically the format of the data in which publication information is represented.
-  * */
-class AuthorshipScoreMapper extends Mapper[LongWritable, Text, Text, FloatWritable] {
+  **/
+class AuthorshipScoreMapper extends Mapper[LongWritable, Text, Text, FloatWritable] with LazyLogging {
 
   private val xmlParser = SAXParserFactory.newInstance().newSAXParser()
   private val dtdFilePath = getClass.getClassLoader.getResource("dblp.dtd").toURI
@@ -24,6 +25,7 @@ class AuthorshipScoreMapper extends Mapper[LongWritable, Text, Text, FloatWritab
 
     if (authorScoresMap.nonEmpty) {
       authorScoresMap.foreach { authorScoreMap =>
+        logger.info("Mapper AuthorshipScoreMapper emitting (key, value) pair : " + "(" + authorScoreMap._1 + "," + authorScoreMap._2.toString + ")")
         context.write(new Text(authorScoreMap._1), new FloatWritable(authorScoreMap._2))
       }
     }

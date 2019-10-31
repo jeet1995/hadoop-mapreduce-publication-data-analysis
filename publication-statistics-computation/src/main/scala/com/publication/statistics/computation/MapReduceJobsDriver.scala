@@ -19,15 +19,17 @@ import scala.collection.JavaConverters._
 
 
 /**
-  * This singleton class denotes the entry point of the map-reduce which will run a list of jobs
+  * This singleton class denotes the entry point of the program which will run a list of map-reduce jobs
   * as specified in the application.conf file.
   * */
 object MapReduceJobsDriver extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
 
-    if (args.length < 1)
-      logger.error("No input path argument supplied, please pass an input path argument")
+    if (args.length < 1) {
+      logger.error("No input path argument supplied, please pass an input path argument, exiting program execution.")
+      System.exit(-1)
+    }
 
     val inputPath = args(0)
 
@@ -146,7 +148,7 @@ object MapReduceJobsDriver extends LazyLogging {
           val job1 = Job.getInstance(configuration)
 
           job1.setJarByClass(this.getClass)
-          job1.setJobName("sort-first-job")
+          job1.setJobName(ApplicationConstants.SORT_FIRST_JOB)
           job1.setMapperClass(classOf[SortByNumCoAuthorsMapper])
           job1.setReducerClass(classOf[SortByNumCoAuthorsReducer])
           job1.setInputFormatClass(classOf[DBLPXmlInputFormat])
@@ -156,9 +158,9 @@ object MapReduceJobsDriver extends LazyLogging {
           job1.setOutputValueClass(classOf[IntWritable])
 
           FileInputFormat.setInputPaths(job1, new Path(inputPath))
-          FileOutputFormat.setOutputPath(job1, new Path(inputPath + mapReduceJob.getString("intermediate-sort-output-path-suffix")))
+          FileOutputFormat.setOutputPath(job1, new Path(inputPath + mapReduceJob.getString(ApplicationConstants.INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX)))
 
-          val outputPath = new Path(inputPath + mapReduceJob.getString("intermediate-sort-output-path-suffix"))
+          val outputPath = new Path(inputPath + mapReduceJob.getString(ApplicationConstants.INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX))
           outputPath.getFileSystem(configuration).delete(outputPath, true)
 
           logger.info("Execution of job " + job1.getJobName + " has begun.")
@@ -168,7 +170,7 @@ object MapReduceJobsDriver extends LazyLogging {
           val job2 = Job.getInstance(configuration)
 
           job2.setJarByClass(this.getClass)
-          job2.setJobName("sort-second-job")
+          job2.setJobName(ApplicationConstants.SORT_SECOND_JOB)
           job2.setMapperClass(classOf[InverseNumCoAuthorsMapper])
           job2.setInputFormatClass(classOf[KeyValueTextInputFormat])
           job2.setMapOutputKeyClass(classOf[IntWritable])
@@ -180,10 +182,10 @@ object MapReduceJobsDriver extends LazyLogging {
           job2.setNumReduceTasks(1)
 
 
-          FileInputFormat.setInputPaths(job2, new Path(inputPath + mapReduceJob.getString("intermediate-sort-output-path-suffix")))
-          FileOutputFormat.setOutputPath(job2, new Path(inputPath + mapReduceJob.getString( "complete-sort-output-path-suffix")))
+          FileInputFormat.setInputPaths(job2, new Path(inputPath + mapReduceJob.getString(ApplicationConstants.INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX)))
+          FileOutputFormat.setOutputPath(job2, new Path(inputPath + mapReduceJob.getString( ApplicationConstants.COMPLETE_SORT_OUTPUT_PATH_SUFFIX)))
 
-          val outputPath2 = new Path(inputPath + mapReduceJob.getString( "complete-sort-output-path-suffix"))
+          val outputPath2 = new Path(inputPath + mapReduceJob.getString( ApplicationConstants.COMPLETE_SORT_OUTPUT_PATH_SUFFIX))
           outputPath2.getFileSystem(configuration).delete(outputPath2, true)
 
           logger.info("Execution of job " + job2.getJobName + " has begun.")
