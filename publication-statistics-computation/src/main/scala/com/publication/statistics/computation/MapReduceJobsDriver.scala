@@ -33,7 +33,10 @@ object MapReduceJobsDriver extends LazyLogging {
 
     val inputPath = args(0)
 
+    // Load the map-reduce-job-pipeline configuration element from application.conf
     val mapReduceJobsPipeline = ConfigFactory.load().getConfig(ApplicationConstants.MAP_REDUCE_JOB_PIPELINE)
+
+    // Execute the pipeline MapReduce job pipeline
     executeJobs(mapReduceJobsPipeline, inputPath)
   }
 
@@ -46,13 +49,18 @@ object MapReduceJobsDriver extends LazyLogging {
       val configuration = new Configuration
       var job: Job = Job.getInstance
 
+      // Set all possible start tags into Hadoop's Configuration object
       configuration.setStrings(ApplicationConstants.POSSIBLE_START_TAGS, mapReduceJobsPipeline.getStringList(ApplicationConstants.POSSIBLE_START_TAGS).asScala: _*)
+
+      // Set all possible end tags into Hadoop's Configuration object
       configuration.setStrings(ApplicationConstants.POSSIBLE_END_TAGS, mapReduceJobsPipeline.getStringList(ApplicationConstants.POSSIBLE_END_TAGS).asScala: _*)
+
+      // Set the name of the MapReduce object
       configuration.set(ApplicationConstants.JOB_NAME, mapReduceJob.getString(ApplicationConstants.JOB_NAME))
 
       mapReduceJob.getString(ApplicationConstants.JOB_TYPE) match {
 
-        // Starts bucketing map-reduce job
+        // Starts bucketing MapReduce job
         case ApplicationConstants.BUCKETING =>
 
           if (mapReduceJob.getString(ApplicationConstants.JOB_NAME) == ApplicationConstants.BUCKETING_BY_NUM_CO_AUTHOR) {
@@ -87,7 +95,7 @@ object MapReduceJobsDriver extends LazyLogging {
           logger.info("Execution of job " + job.getJobName + " has ended.")
 
 
-          // Starts mean-median-max job
+        // Starts mean-median-max MapReduce job
         case ApplicationConstants.MEAN_MEDIAN_MAX =>
           job = Job.getInstance(configuration)
 
@@ -116,7 +124,7 @@ object MapReduceJobsDriver extends LazyLogging {
           logger.info("Execution of job " + job.getJobName + " has ended.")
 
 
-        // Starts authorship score job
+        // Starts authorship score MapReduce job
         case ApplicationConstants.AUTHORSHIP_SCORE =>
           job = Job.getInstance(configuration)
 
@@ -142,7 +150,7 @@ object MapReduceJobsDriver extends LazyLogging {
           job.waitForCompletion(true)
           logger.info("Execution of job " + job.getJobName + " has ended.")
 
-        // Starts sorting job
+        // Starts sorting MapReduce job
         case ApplicationConstants.SORT =>
 
           val job1 = Job.getInstance(configuration)

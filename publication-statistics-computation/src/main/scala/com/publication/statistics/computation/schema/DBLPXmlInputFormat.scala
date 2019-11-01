@@ -14,59 +14,69 @@ import org.apache.hadoop.mapreduce.{InputSplit, RecordReader, TaskAttemptContext
   * This class represents an input format class which is a subtype of the text input format class.
   *
   * Credits: @link{https://github.com/mayankrastogi/faculty-collaboration}
-  * */
+  **/
 class DBLPXmlInputFormat extends TextInputFormat with LazyLogging {
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[LongWritable, Text] = {
-    // Record reader which generates records of various tags.
     new MultiTagXmlRecordReader(split.asInstanceOf[FileSplit], context.getConfiguration)
   }
 
   class MultiTagXmlRecordReader(split: FileSplit, conf: Configuration)
     extends RecordReader[LongWritable, Text] {
 
-    // Get the start and end tags as specified by the user in the Hadoop job configuration
+    // Extracts all possible start tags from the configuration object
     private val possibleStartTags = conf.getStrings(ApplicationConstants.POSSIBLE_START_TAGS).map(_.getBytes(StandardCharsets.UTF_8))
+
+    // Extracts all possible end tags from the configuration object
     private val possibleEndTags = conf.getStrings(ApplicationConstants.POSSIBLE_END_TAGS).map(_.getBytes(StandardCharsets.UTF_8))
 
-    // Open the file and seek to the start of the split
+    // Start of input split
     private val start = split.getStart
+
+    // End of input split
     private val end = start + split.getLength
 
+    // Input stream to the input split
     private val fsDataInputStream = split.getPath.getFileSystem(conf).open(split.getPath)
 
-
-    // Buffer for storing file content between the start and end tags
+    // Output buffer
     private val dataOutputBuffer = new DataOutputBuffer()
 
-    // Track the current key and value
+    // Key to be written to a mapper
     private val currentKey = new LongWritable()
+
+    // Value to be written to a mapper
     private val currentValue = new Text()
 
 
-    override def nextKeyValue(): Boolean = {
-      // Keep scanning the input file until one of the start tags is encountered
+    override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
+      fsDataInputStream.seek(start)
+    }
 
+    override def nextKeyValue(): Boolean = {
+
+      // Search for start tag
       val tag = readUntilMatch(possibleStartTags, false)
 
       if (fsDataInputStream.getPos < end && tag != null) {
         try {
-          // Store the matched tag in the buffer (Our output will start with the start tag)
+
+
           dataOutputBuffer.write(tag)
 
           val endTag = readUntilMatch(possibleEndTags, true)
 
-          // Keep reading until the corresponding end tag is matched
           if (endTag != null) {
 
-            // Emit the key and value once the end tag is matched
+            // Set key as pos of data input stream
             currentKey.set(fsDataInputStream.getPos)
+
+            // Write data from start of start tag to end of end tag
             currentValue.set(dataOutputBuffer.getData, 0, dataOutputBuffer.getLength)
             return true
           }
         }
         finally {
-          // Reset the buffer so that we start fresh next time
           dataOutputBuffer.reset()
         }
       }
@@ -75,43 +85,45 @@ class DBLPXmlInputFormat extends TextInputFormat with LazyLogging {
 
 
     private def readUntilMatch(tags: Array[Array[Byte]], lookingForEndTag: Boolean): Array[Byte] = {
-      // Trackers for the bytes that have been currently matched for each tag. Initialized to 0 at the beginning.
+
+      //
       val matchCounter: Array[Int] = tags.indices.map(_ => 0).toArray
 
       while (true) {
         // Read a byte from the input stream
         val currentByte = fsDataInputStream.read()
 
-        // Return null if end of file is reached
+        // Return null if input stream does not get pointed to the first character
         if (currentByte == -1) {
           return null
         }
 
-        // If we are looking for the end tag, buffer the file contents until we find it.
+        // Write from current byte to last byte when looking for the end tag
         if (lookingForEndTag) {
           dataOutputBuffer.write(currentByte)
         }
 
-        // Check if we are matching any of the tags
+        // Iterate through all possible tags
         tags.indices.foreach { tagIndex =>
-          // The current tag which we are testing for a match
+
+          // Extract start tag to check
           val tag = tags(tagIndex)
+
 
           if (currentByte == (matchCounter(tagIndex))) {
             matchCounter(tagIndex) += 1
 
-            // If the counter for this tag reaches the length of the tag, we have found a match
+            // If no. of bytes match then the tag matches
             if (matchCounter(tagIndex) >= tag.length) {
               return tag
             }
           }
           else {
-            // Reset the counter for this tag if the current byte doesn't match with the byte of the current tag being
-            // tested
-            matchCounter(tagIndex) = 0
+            matchCounter(tagIndex) = 0 // Reset no. of bytes in case of mismatch in no. of bytes
           }
         }
-        // Check if we've passed the stop point
+
+        // Return null in case all checks fail and we are looking for the start tag
         if (!lookingForEndTag && matchCounter.forall(_ == 0) && fsDataInputStream.getPos >= end) {
           return null
         }
@@ -119,9 +131,6 @@ class DBLPXmlInputFormat extends TextInputFormat with LazyLogging {
       null
     }
 
-    override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
-      fsDataInputStream.seek(start)
-    }
 
     override def getCurrentKey: LongWritable = {
       new LongWritable(currentKey.get())

@@ -10,6 +10,6 @@ class DescendingOrderByNumCoAuthorComparator extends WritableComparator(classOf[
   override def compare(a: WritableComparable[_], b: WritableComparable[_]): Int = {
     val key1 = a.asInstanceOf[IntWritable]
     val key2 = b.asInstanceOf[IntWritable]
-    -1 * key1.compareTo(key2)
+    -1 * key1.compareTo(key2) // Sorts in descending order
   }
 }

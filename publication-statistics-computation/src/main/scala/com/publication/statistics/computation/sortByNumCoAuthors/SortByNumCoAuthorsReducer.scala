@@ -15,8 +15,10 @@ import scala.collection.mutable
 class SortByNumCoAuthorsReducer extends Reducer[Text, Text, Text, IntWritable] with LazyLogging {
 
   override def reduce(key: Text, values: lang.Iterable[Text], context: Reducer[Text, Text, Text, IntWritable]#Context): Unit = {
+
     val set = new mutable.HashSet[String]()
 
+    // Reduce all co-authors into a set to retain only unique co-authors
     values.forEach { value =>
       set += value.toString
     }
