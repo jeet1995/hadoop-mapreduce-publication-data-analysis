@@ -1,7 +1,6 @@
 package main.scala.com.publication.statistics.computation.schema
 
 import java.nio.charset.StandardCharsets
-
 import com.google.common.io.Closeables
 import com.typesafe.scalalogging.LazyLogging
 import main.scala.com.publication.statistics.computation.utils.ApplicationConstants
@@ -43,10 +42,10 @@ class DBLPXmlInputFormat extends TextInputFormat with LazyLogging {
     private val dataOutputBuffer = new DataOutputBuffer()
 
     // Key to be written to a mapper
-    private val currentKey = new LongWritable()
+    private var currentKey = new LongWritable()
 
     // Value to be written to a mapper
-    private val currentValue = new Text()
+    private var currentValue = new Text()
 
 
     override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
@@ -86,8 +85,8 @@ class DBLPXmlInputFormat extends TextInputFormat with LazyLogging {
 
     private def readUntilMatch(tags: Array[Array[Byte]], lookingForEndTag: Boolean): Array[Byte] = {
 
-      //
-      val matchCounter: Array[Int] = tags.indices.map(_ => 0).toArray
+      // Counter where each index represents a tag and its value represents the byte count
+      val matchCounter: Array[Int] = Array.fill(tags.length)(0)
 
       while (true) {
         // Read a byte from the input stream
@@ -110,7 +109,7 @@ class DBLPXmlInputFormat extends TextInputFormat with LazyLogging {
           val tag = tags(tagIndex)
 
 
-          if (currentByte == (matchCounter(tagIndex))) {
+          if (currentByte == tag(matchCounter(tagIndex))) {
             matchCounter(tagIndex) += 1
 
             // If no. of bytes match then the tag matches

@@ -40,7 +40,7 @@ object MapReduceJobsDriver extends LazyLogging {
     executeJobs(mapReduceJobsPipeline, inputPath)
   }
 
-  private def executeJobs(mapReduceJobsPipeline: Config, inputPath: String): Unit = {
+  private def executeJobs(mapReduceJobsPipeline: Config, inputPathString: String): Unit = {
 
     val mapReduceJobs = mapReduceJobsPipeline.getConfigList(ApplicationConstants.JOBS).asScala
 
@@ -84,12 +84,15 @@ object MapReduceJobsDriver extends LazyLogging {
           // Set to 1 to collate reduce outputs in one file
           job.setNumReduceTasks(1)
 
-          FileInputFormat.setInputPaths(job, new Path(inputPath))
-          FileOutputFormat.setOutputPath(job, new Path(inputPath + mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX)))
+          val inputPath = new Path(inputPathString)
 
-          val outputPath = new Path(inputPath + mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX))
+          // Get parent directory of input path and add the requisite suffix to generate output path
+          val outputPath = inputPath.getFileSystem(configuration).getWorkingDirectory.getParent.suffix(mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX))
 
+          FileInputFormat.setInputPaths(job, inputPath)
           outputPath.getFileSystem(configuration).delete(outputPath, true)
+          FileOutputFormat.setOutputPath(job, outputPath)
+
           logger.info("Execution of job " + job.getJobName + " has begun.")
           job.waitForCompletion(true)
           logger.info("Execution of job " + job.getJobName + " has ended.")
@@ -115,10 +118,12 @@ object MapReduceJobsDriver extends LazyLogging {
           configuration.set(ApplicationConstants.JOB_TYPE, mapReduceJob.getString(ApplicationConstants.JOB_TYPE))
 
 
-          FileInputFormat.setInputPaths(job, new Path(inputPath))
-          FileOutputFormat.setOutputPath(job, new Path(inputPath + mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX)))
-          val outputPath = new Path(inputPath + mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX))
+          val inputPath = new Path(inputPathString)
+          val outputPath = inputPath.getFileSystem(configuration).getWorkingDirectory.getParent.suffix(mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX))
+
+          FileInputFormat.setInputPaths(job, inputPath)
           outputPath.getFileSystem(configuration).delete(outputPath, true)
+          FileOutputFormat.setOutputPath(job, outputPath)
           logger.info("Execution of job " + job.getJobName + " has begun.")
           job.waitForCompletion(true)
           logger.info("Execution of job " + job.getJobName + " has ended.")
@@ -142,10 +147,12 @@ object MapReduceJobsDriver extends LazyLogging {
           configuration.set(ApplicationConstants.JOB_TYPE, mapReduceJob.getString(ApplicationConstants.JOB_TYPE))
 
 
-          FileInputFormat.setInputPaths(job, new Path(inputPath))
-          FileOutputFormat.setOutputPath(job, new Path(inputPath + mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX)))
-          val outputPath = new Path(inputPath +mapReduceJob.getString( ApplicationConstants.OUTPUT_PATH_SUFFIX))
+          val inputPath = new Path(inputPathString)
+          val outputPath = inputPath.getFileSystem(configuration).getWorkingDirectory.getParent.suffix(mapReduceJob.getString(ApplicationConstants.OUTPUT_PATH_SUFFIX))
+
+          FileInputFormat.setInputPaths(job, inputPath)
           outputPath.getFileSystem(configuration).delete(outputPath, true)
+          FileOutputFormat.setOutputPath(job, outputPath)
           logger.info("Execution of job " + job.getJobName + " has begun.")
           job.waitForCompletion(true)
           logger.info("Execution of job " + job.getJobName + " has ended.")
@@ -165,11 +172,12 @@ object MapReduceJobsDriver extends LazyLogging {
           job1.setOutputKeyClass(classOf[Text])
           job1.setOutputValueClass(classOf[IntWritable])
 
-          FileInputFormat.setInputPaths(job1, new Path(inputPath))
-          FileOutputFormat.setOutputPath(job1, new Path(inputPath + mapReduceJob.getString(ApplicationConstants.INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX)))
+          val inputPath = new Path(inputPathString)
+          val outputPathFirstJob = inputPath.getFileSystem(configuration).getWorkingDirectory.getParent.suffix(mapReduceJob.getString(ApplicationConstants.INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX))
+          outputPathFirstJob.getFileSystem(configuration).delete(outputPathFirstJob, true)
 
-          val outputPath = new Path(inputPath + mapReduceJob.getString(ApplicationConstants.INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX))
-          outputPath.getFileSystem(configuration).delete(outputPath, true)
+          FileInputFormat.setInputPaths(job1, inputPath)
+          FileOutputFormat.setOutputPath(job1, outputPathFirstJob)
 
           logger.info("Execution of job " + job1.getJobName + " has begun.")
           job1.waitForCompletion(true)
@@ -186,16 +194,16 @@ object MapReduceJobsDriver extends LazyLogging {
           job2.setSortComparatorClass(classOf[DescendingOrderByNumCoAuthorComparator])
           job2.setReducerClass(classOf[InverseNumCoAuthorsReducer])
 
+
+          val outputPathSecondJob = outputPathFirstJob.getFileSystem(configuration).getWorkingDirectory.getParent.suffix(mapReduceJob.getString(ApplicationConstants.COMPLETE_SORT_OUTPUT_PATH_SUFFIX))
+          outputPathSecondJob.getFileSystem(configuration).delete(outputPathSecondJob, true)
+
+          FileInputFormat.setInputPaths(job2, outputPathFirstJob)
+          FileOutputFormat.setOutputPath(job2, outputPathSecondJob)
+
+
           // Set to 1 to collate reduce outputs into 1 file
           job2.setNumReduceTasks(1)
-
-
-          FileInputFormat.setInputPaths(job2, new Path(inputPath + mapReduceJob.getString(ApplicationConstants.INTERMEDIATE_SORT_OUTPUT_PATH_SUFFIX)))
-          FileOutputFormat.setOutputPath(job2, new Path(inputPath + mapReduceJob.getString( ApplicationConstants.COMPLETE_SORT_OUTPUT_PATH_SUFFIX)))
-
-          val outputPath2 = new Path(inputPath + mapReduceJob.getString( ApplicationConstants.COMPLETE_SORT_OUTPUT_PATH_SUFFIX))
-          outputPath2.getFileSystem(configuration).delete(outputPath2, true)
-
           logger.info("Execution of job " + job2.getJobName + " has begun.")
           job2.waitForCompletion(true)
           logger.info("Execution of job " + job2.getJobName + " has ended.")

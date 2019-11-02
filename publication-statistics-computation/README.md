@@ -6,7 +6,7 @@ Name : Abhijeet Mohanty
 ---
 ### Overview
 
-* In this homework, I have created a sequence of Hadoop MapReduce jobs which perform various analysis tasks, be it sorting, computing cumulative statistics or bucketing based on some key indicators based on the publication data provided through the dblp.xml file. Then I learn how to deploy my jobs packaged in a JAR by utilizing AWSs’ cloud infrastructure services for storage and for running map reduce jobs through their S3 and EMR offering. A small demo of my JAR execution on AWS EMR can be found on this link.  
+* In this homework, I have created a sequence of Hadoop MapReduce jobs which perform various analysis tasks, be it sorting, computing cumulative statistics or bucketing based on some key indicators based on the publication data provided through the dblp.xml file. Then I learn how to deploy my jobs packaged in a JAR by utilizing AWSs’ cloud infrastructure services for storage and for running map reduce jobs through their S3 and EMR offering. A small demo of my JAR execution on AWS EMR can be found on this [can be found on this link](https://www.youtube.com/watch?v=b1tG-iEXS-Y&t=1092s).  
 
 ### Setup information
 
@@ -18,7 +18,8 @@ Name : Abhijeet Mohanty
 
 ### Steps to follow to set up the execution environment
 
-* After cloning the project titled abhijeet_mohanty_cs441_hw2 navigate to abhijeet_mohanty_cs441_hw2/publication-statistics-computation and run the following command to clean, compile and build the JAR
+* After cloning the project titled **abhijeet_mohanty_cs441_hw2** navigate to **abhijeet_mohanty_cs441_hw2/publication-statistics-computation** and run the following command to clean, compile and build the JAR
+    
     `> sbt clean compile assembly`
 
 * Make sure HDP sandbox is booted up on a distribution of VMWare.
@@ -29,7 +30,7 @@ Name : Abhijeet Mohanty
     `> scp -P 2222 <local path to dblp.xml> root@sandbox-hdp.hortonworks.com:~/`
     
 
-* Next, we need to copy the artifact JAR generated in `abhijeet_mohanty_cs441_hw2/publication-statistics-computation/target/scala-2.12/publication-statistics-computation-assembly-0.1.jar` of to the Hadoop file system as below
+* Next, we need to copy the artifact JAR generated as `abhijeet_mohanty_cs441_hw2/publication-statistics-computation/target/scala-2.12/publication-statistics-computation-assembly-0.1.jar` into the Hadoop file system as below
     
     
     `> scp -P 2222 <local path to executable JAR> root@sandbox-hdp.hortonworks.com:~/`
@@ -64,15 +65,17 @@ Name : Abhijeet Mohanty
 
         * Possible output paths
     
-            * `<input path to dblp.xml>/` appended with `sort_result/`
+            * Parent of `<input path to dblp.xml>/` appended with `/sort_result/`
     
-            * `<input path to dblp.xml>/` appended with `bucketing_by_num_coauthor_result/`
+            * Parent of `<input path to dblp.xml>/` appended with `/bucketing_by_num_coauthor_result/`
     
-            * `<input path to dblp.xml>/` appended with `bucketing_by_publication_type_result/`
+            * Parent of `<input path to dblp.xml>/` appended with `/bucketing_by_publication_type_result/`
     
-            * `<input path to dblp.xml>/` appended with `authorship_score_result/`
+            * Parent of `<input path to dblp.xml>/` appended with `/authorship_score_result/`
     
-            * `<input path to dblp.xml>/` appended with `mean_median_max_result/`
+            * Parent of `<input path to dblp.xml>/` appended with `/mean_median_max_result/`
+            
+        * **NOTE :** For example, upon running on AWS EMR, a `user` folder was the parent folder and the result folders were created within it.   
 
 
 ### Map-Reduce job descriptions
@@ -81,6 +84,7 @@ Name : Abhijeet Mohanty
 
     * By the no. of co-authors per paper
         * In this task, `BucketingByNumNodesMapper` buckets in a manner such that each bucket represents a range of the no. of co-authors and the value computed for this bucket is the no. of such publications.
+        * Here the `bucketSize` can be configured through the `application.conf` file.
     * By publication type
         * In this task, `BucketingByNumNodesMapper` in a manner such that each bucket represents the publication type, say for instance the publication type could be a PhD thesis, an article or a proceeding and so on. The value corresponding to each such bucket is simply the no. of instances a publication type appears in our dbpl.xml input.
 
@@ -120,9 +124,54 @@ Name : Abhijeet Mohanty
 * Results
 
     * Bucketing by the no. of co-authors
-        * <bucketing-by-num-co-authors-result>.png
-    * Bucketing by publication type
-        * <bucketing-by-publication-type-result>.png
+    
+ ```
+       0	52757
+       1-5	6767291
+       101-105	5
+       11-15	17507
+       111-115	2
+       116-120	2
+       136-140	1
+       151-155	1
+       16-20	3302
+       21-25	1089
+       26-30	497
+       261-265	1
+       286-290	2
+       31-35	218
+       36-40	122
+       41-45	69
+       46-50	48
+       51-55	30
+       56-60	26
+       6-10	324185
+       61-65	9
+       66-70	9
+       71-75	7
+       76-80	6
+       86-90	1
+       91-95	3
+       96-100	2 
+ ```
+ 
+ ![Bucketing by the no. of co-authors](images/bucketing_num_co_authors.png)
+   
+   * Bucketing by publication type
+ 
+ ```
+    article	2121150
+    book	17800
+    incollection	59952
+    inproceedings	2478509
+    mastersthesis	12
+    phdthesis	73914
+    proceedings	42243
+    www	2373612
+ ```  
+ 
+ ![Bucketing by publication type](images/bucketing_publication_type.png)
+       
 
 ### Other results
 
@@ -204,15 +253,47 @@ Name : Abhijeet Mohanty
 
 
 * Max, median and average
-    * <max-median-avg-result>.png
+
+    * A small sample of max, median and average of co-authors worked with for a given author
+    
+```
+    R. Manokaran	;5.0;5;3.3333333
+    R. Manonmani	;47.0;3;16.666666
+    R. Manzanares	;10.0;0;5.0
+    R. Marc Lebel	;59.0;6;13.428572
+    R. Maree	;3.0;0;1.5
+    R. Maresca	;4.0;0;2.0
+    R. Marinho	;3.0;2;1.6666666
+    R. Marini	;6.0;0;3.0
+    R. Marion	;2.0;0;1.0
+    R. Mark Chilenskas	;4.0;3;2.5
+    R. Mark Greenwood	;60.0;4;6.58
+```
 * Authorship score
-    * <authorship-score-result>.png
+
+
+```
+    A Dewdney	1.140625
+    A'aeshah Alhakamy	2.5
+    A'fza Shafie	1.1875
+    A'kif Al-Fugara	1.1992188
+    A'lishia Bowman	1.1428223
+    A'na Wang	1.3375
+    A-Chuan Hsueh	1.5
+    A-Long Jin	4.625781
+    A-Ram Choi	1.6958256
+    A-Rang Jeong	1.234375
+    A-Reum Bae	1.25
+    A-Young Cho	1.576416
+    A-ming Hao	1.3320312
+    A. A Amerikanov	1.1875
+```
 
 ### XMLInputFormat
 
 As far as `dblp.xml` is concerned, we have various tags which denote the type of publication (as specified in the `dblp.dtd`) such as `<article , <inproceedings , <proceedings , <book , <incollection , <phdthesis , <mastersthesis , <www , <person , <data`. In order
 to generate a record where each record is a key-value pair whose value is an object of type `Text` consisting of a publication element enclosed within the aforementioned tags. Here I have used 
-[Mayank Rastogi's implementation of a multi-tag record generator](https://github.com/mayankrastogi/faculty-collaboration/tree/master/src/main/scala/com/mayankrastogi/cs441/hw2/mapreduce) and [Mahout's XMLInputFormat](http://thinkbigdataanalytics.com/xmlinputformat-hadoop/).
+[Mayank Rastogi's implementation of a multi-tag record generator](https://github.com/mayankrastogi/faculty-collaboration/tree/master/src/main/scala/com/mayankrastogi/cs441/hw2/mapreduce) and [Mahout's XMLInputFormat](http://thinkbigdataanalytics.com/xmlinputformat-hadoop/). 
 
 
 ### Future improvements

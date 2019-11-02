@@ -14,7 +14,7 @@ class BucketingByNumNodesMapperTest extends FunSuite {
 
 
 
-  test("testDetermineAuthorsPerPublication") {
+  test("determineAuthorsPerPublication should return the correct no. of authors per publication element") {
 
     val bucketingByNumNodesMapper = new BucketingByNumNodesMapper
 
@@ -28,7 +28,7 @@ class BucketingByNumNodesMapperTest extends FunSuite {
     assert(numAuthors === 4)
   }
 
-  test("testDeterminePublicationType") {
+  test("determinePublicationType should return the correct label of the head of the publication element") {
 
 
     val bucketingByNumNodesMapper = new BucketingByNumNodesMapper

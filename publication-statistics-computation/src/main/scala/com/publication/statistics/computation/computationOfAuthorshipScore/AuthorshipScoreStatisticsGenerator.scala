@@ -20,6 +20,21 @@ object AuthorshipScoreStatisticsGenerator {
     val ONE = 1f
     val authorStr = "author"
 
+    var author = ""
+
+    publicationElement.child.head.label match {
+
+      case "book" =>
+        author = "editor"
+      case "proceedings" =>
+        author = "editor"
+      case _ =>
+        author = "author"
+    }
+
+    (publicationElement \\ author).size
+
+
     val mapSize = (publicationElement \\ authorStr).size
     val authorScoreMap = new scala.collection.mutable.HashMap[String, Float]
     val authors = new mutable.ArrayBuffer[String]

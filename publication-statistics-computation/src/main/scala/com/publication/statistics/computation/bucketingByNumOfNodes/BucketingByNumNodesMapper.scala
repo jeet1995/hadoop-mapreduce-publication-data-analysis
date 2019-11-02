@@ -28,15 +28,16 @@ class BucketingByNumNodesMapper extends Mapper[LongWritable, Text, Text, IntWrit
     jobName match {
       case ApplicationConstants.BUCKETING_BY_NUM_CO_AUTHOR =>
         val authorCount = determineAuthorsPerPublication(publicationData)
-        val bucket = KeyGenerator.generateKeyByBucket(authorCount, bucketSize)
 
+        val bucket = KeyGenerator.generateKeyByBucket(authorCount, bucketSize)
         logger.info("Mapper BucketingByNumNodesMapper emitting (key, value) pair : " + "(" + bucket + "," + 1.toString + ")")
 
         context.write(new Text(bucket), new IntWritable(1))
       case ApplicationConstants.BUCKETING_BY_PUBLICATION_TYPE =>
-        val publicationType = determinePublicationType(publicationData)
 
+        val publicationType = determinePublicationType(publicationData)
         logger.info("Mapper BucketingByNumNodesMapper emitting (key, value) pair : " + "(" + publicationType + "," + 1.toString + ")")
+
         context.write(new Text(publicationType), new IntWritable(1))
     }
   }
@@ -81,6 +82,7 @@ class BucketingByNumNodesMapper extends Mapper[LongWritable, Text, Text, IntWrit
       case _ =>
         author = "author"
     }
+
     (publicationData \\ author).size
   }
 

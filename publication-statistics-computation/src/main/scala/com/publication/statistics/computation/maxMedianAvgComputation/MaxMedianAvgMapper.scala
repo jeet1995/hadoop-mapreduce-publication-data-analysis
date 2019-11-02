@@ -13,7 +13,7 @@ import scala.xml.{Elem, XML}
 /**
   * This class denotes the mapper class which performs a calculation for determining the max, median and avg. for a given author as
   * far as the no. of co-authors is concerned.
-  * */
+  **/
 class MaxMedianAvgMapper extends Mapper[LongWritable, Text, Text, MaxMedianAvgWritable] with LazyLogging {
 
   private val xmlParser = SAXParserFactory.newInstance().newSAXParser()
@@ -42,10 +42,24 @@ class MaxMedianAvgMapper extends Mapper[LongWritable, Text, Text, MaxMedianAvgWr
   }
 
   def getAuthors(publicationElement: Elem, configuration: Configuration): ArrayBuffer[String] = {
+
     val authors = new ArrayBuffer[String]
-    (publicationElement \\ "author").foreach { node => authors += node.text }
+    var author = ""
+
+    publicationElement.child.head.label match {
+      case "book" =>
+        author = "editor"
+      case "proceedings" =>
+        author = "editor"
+      case _ =>
+        author = "author"
+    }
+
+    (publicationElement \\ author).foreach { node =>
+
+      if (node.text != null)
+        authors += node.text
+    }
     authors
   }
-
-
 }
