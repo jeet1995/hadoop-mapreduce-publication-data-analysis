@@ -125,7 +125,7 @@ Name : Abhijeet Mohanty
 
     * Bucketing by the no. of co-authors
     
- ```
+```
        0	52757
        1-5	6767291
        101-105	5
@@ -153,13 +153,13 @@ Name : Abhijeet Mohanty
        86-90	1
        91-95	3
        96-100	2 
- ```
+```
  
  ![Bucketing by the no. of co-authors](images/bucketing_num_co_authors.png)
    
    * Bucketing by publication type
  
- ```
+```
     article	2121150
     book	17800
     incollection	59952
@@ -168,7 +168,7 @@ Name : Abhijeet Mohanty
     phdthesis	73914
     proceedings	42243
     www	2373612
- ```  
+```  
  
  ![Bucketing by publication type](images/bucketing_publication_type.png)
        
