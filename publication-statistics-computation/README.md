@@ -6,7 +6,7 @@ Name : Abhijeet Mohanty
 ---
 ### Overview
 
-* In this homework, I have created a sequence of Hadoop MapReduce jobs which perform various analysis tasks, be it sorting, computing cumulative statistics or bucketing based on some key indicators based on the publication data provided through the dblp.xml file. Then I learn how to deploy my jobs packaged in a JAR by utilizing AWSs’ cloud infrastructure services for storage and for running map reduce jobs through their S3 and EMR offering. A small demo of my JAR execution on AWS EMR can be found on this [can be found on this link](https://www.youtube.com/watch?v=b1tG-iEXS-Y&t=1092s).  
+* In this homework, I have created a sequence of Hadoop MapReduce jobs which perform various analysis tasks, be it sorting, computing cumulative statistics or bucketing based on some key indicators based on the publication data provided through the dblp.xml file. Then I learn how to deploy my jobs packaged in a JAR by utilizing AWSs’ cloud infrastructure services for storage and for running map reduce jobs through their S3 and EMR offering. A small demo of my Apache Hadoop MapReduce execution on AWS EMR can be found on this [can be found on this link](https://www.youtube.com/watch?v=b1tG-iEXS-Y&t=1092s).  
 
 ### Setup information
 
